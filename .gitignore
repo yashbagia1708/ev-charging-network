@@ -1,0 +1,9 @@
+# build output
+evcharging
+*.o
+*.out
+
+# editor and OS files
+.vscode/
+.idea/
+.DS_Store
