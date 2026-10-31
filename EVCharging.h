@@ -277,6 +277,7 @@ void EVCharging::findPathWithMinimalCost() {
     }
 
     double minCost = numeric_limits<double>::max();
+    double minTravelCost = 0.0;
     int minCostStation = -1;
 
     for (const auto& it : locations) {
@@ -292,6 +293,7 @@ void EVCharging::findPathWithMinimalCost() {
 
                 if (totalCost < minCost) {
                     minCost = totalCost;
+                    minTravelCost = travelCost;
                     minCostStation = it.first;
                 }
             }
@@ -301,7 +303,7 @@ void EVCharging::findPathWithMinimalCost() {
     if (minCostStation == -1) {
         cout << "No available paths found with the specified power to charge." << endl;
     } else {
-        double travelCost = (distancesFromOrigin[minCostStation] + weightedGraph->getDistance(destination)) * 0.08;
+        double travelCost = minTravelCost;
         double chargingCost = powerToCharge * locations[minCostStation].chargingPrice;
         double totalCost = travelCost + chargingCost;
 
@@ -309,7 +311,7 @@ void EVCharging::findPathWithMinimalCost() {
         cout << "Charging cost = $" << fixed << setprecision(2) << chargingCost << endl;
         cout << "Travel cost = $" << fixed << setprecision(3) << travelCost << endl;
         cout << "Total cost = $" << fixed << setprecision(3) << totalCost << endl;
-        cout << "Travel path: " << originName << ", " << locations[minCostStation].stationLocation << endl;
+        cout << "Travel path: " << originName << ", " << locations[minCostStation].stationLocation << ", " << destinationName << endl;
     }
 }
 
@@ -354,16 +356,15 @@ void EVCharging::findBestChargingPath() {
         double minCost = numeric_limits<double>::max();
         int minCostStation = -1;
 
+        // a big charge goes to a free station, so only free ones are considered
         for (const auto& it : locations) {
-            if (it.second.available && it.first != origin) { 
+            if (it.second.available && it.second.chargingPrice == 0.0 && it.first != origin) {
                 weightedGraph->dijkstra(it.first);
                 double distanceToDestination = weightedGraph->getDistance(destination);
 
                 if (distancesFromOrigin[it.first] != numeric_limits<double>::max() &&
                     distanceToDestination != numeric_limits<double>::max()) {
-                    double travelCost = (distancesFromOrigin[it.first] + distanceToDestination) * 0.08; 
-                    double chargingCost = 0.0; 
-                    double totalCost = travelCost + chargingCost;
+                    double totalCost = (distancesFromOrigin[it.first] + distanceToDestination) * 0.08;
 
                     if (totalCost < minCost) {
                         minCost = totalCost;
@@ -374,7 +375,7 @@ void EVCharging::findBestChargingPath() {
         }
 
         if (minCostStation != -1) {
-            double travelCost = (distancesFromOrigin[minCostStation] + weightedGraph->getDistance(destination)) * 0.08;
+            double travelCost = minCost;
             double totalCost = travelCost;
             cout << "The best way of charging is to charge at " << locations[minCostStation].stationLocation << "." << endl;
             cout << "Charging cost = Free" << endl;
@@ -385,12 +386,11 @@ void EVCharging::findBestChargingPath() {
         }
     }
 
-    int currentLocation = destination;
     double minDistance = numeric_limits<double>::max();
     int nearestStationIndex = -1;
     for (const auto& location : locations) {
         if (location.second.available) {
-            double distanceToStation = weightedGraph->getDistance(location.first);
+            double distanceToStation = distancesFromOrigin[location.first];
             if (distanceToStation < minDistance) {
                 minDistance = distanceToStation;
                 nearestStationIndex = location.first;
@@ -398,7 +398,13 @@ void EVCharging::findBestChargingPath() {
         }
     }
 
-    double travelCost = distancesFromOrigin[destination];
+    if (nearestStationIndex == -1) {
+        cout << "No available stations found." << endl;
+        return;
+    }
+
+    weightedGraph->dijkstra(nearestStationIndex);
+    double travelCost = (minDistance + weightedGraph->getDistance(destination)) * 0.08;
     double chargingCost = powerToCharge * locations[nearestStationIndex].chargingPrice;
     double totalCost = travelCost + chargingCost;
 
@@ -406,7 +412,11 @@ void EVCharging::findBestChargingPath() {
     cout << "Charging cost = $" << fixed << setprecision(2) << chargingCost << endl;
     cout << "Travel cost = $" << fixed << setprecision(3) << travelCost << endl;
     cout << "Total cost = $" << fixed << setprecision(3) << totalCost << endl;
-    cout << "Travel path: " << originName << ", " << locations[nearestStationIndex].stationLocation << ", " << destinationName << endl;
+    cout << "Travel path: " << originName;
+    if (nearestStationIndex != origin) {
+        cout << ", " << locations[nearestStationIndex].stationLocation;
+    }
+    cout << ", " << destinationName << endl;
 }
 
 #endif /* EVCHARGING_H_ */
