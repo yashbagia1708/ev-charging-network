@@ -1,0 +1,24 @@
+Penrith,1,0.25 
+Kingswood,1,0.00 
+Windsor,1,0.00 
+Rooty hill,1,0.40 
+Blacktown,1,0.00 
+Parramatta,1,0.45 
+Olympic Park,1,0.60 
+Burwood,1,0.49 
+Lilyfield,0,0.00 
+Central,1,0.55 
+North Sydney,1,0.50 
+Lane Cove,1,0.00 
+Macquarie Pk,1,0.30 
+Pennant Hills,1,0.49 
+Kings Park,1,0.30 
+Glendenning,1,0.49 
+Mascot,1,0.33 
+Kingsgrove,1,0.58 
+Bankstown,1,0.50 
+Liverpool,1,0.49 
+Prestons,1,0.49 
+Campbelltown,1,0.53 
+Wahroonga,0,0.00 
+Pymble,0,0.00
